@@ -169,6 +169,37 @@ public:
         operator bool();
         //! @brief Tries to convert this value to a boolean.
         operator const bool() const;
+        
+        //! @brief Tries to serialize the specified structure.
+        //! The structure must have the function toJSON() defined.
+        template < typename T > inline Value& operator << (const T& rhs) {
+            *this = Value(mName, rhs.toJSON());
+            return *this;
+        }
+        
+        //! @brief Some stuff for normal structures.
+        template < > inline Value& operator << (const std::string& rhs) {
+            *this = Value(mName, rhs);
+            return *this;
+        }
+        
+        //! @brief Some stuff for normal structures.
+        template < > inline Value& operator << (const Number& rhs) {
+            *this = Value(mName, rhs);
+            return *this;
+        }
+        
+        //! @brief Some stuff for normal structures.
+        template < > inline Value& operator << (const std::vector<Value>& rhs) {
+            *this = Value(mName, rhs);
+            return *this;
+        }
+        
+        //! @brief Some stuff for normal structures.
+        template < > inline Value& operator << (const JSON& rhs) {
+            *this = Value(mName, rhs);
+            return *this;
+        }
 	};
 	
 	//! @brief The Array representation.
@@ -209,7 +240,8 @@ public:
 	const Array& valueOf(const std::string& name, const Array& def) const;
 	
 	//! @brief Returns the value with specified name.
-	//! If this value doesn't exist, a NullValue is returned. 
+	//! If this value doesn't exist, a NullValue is created with the specified name and a reference
+    //! to the newly created Value is returned.
 	Value& operator[](const std::string& name);
 	//! @brief Returns the value with specified name.
 	//! If this value doesn't exist, a NullValue is returned. 
@@ -250,3 +282,5 @@ public:
 
 std::ostream& operator << (std::ostream& out, const JSON& obj);
 std::ostream& operator << (std::ostream& out, const JSON::Value& value);
+
+

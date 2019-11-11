@@ -1,0 +1,59 @@
+{
+	"Project": 
+	{
+		"Name": "AtlPixellizer",
+		"Author": "Atlanti's Corporation",
+		"Website": "github.com/atlanticorp/atlpixellizer",
+		"Version": "0.1 (alpha)",
+		
+		"Imports": ["AtlDefaultInstallPathes"],
+		
+		"Dependencies": 
+		{
+			"AtlBase": {
+				"URL": "github.com/atlanticorp/atlbase",
+				"Loader": "Git",
+				"Path": "Deps/AtlBase"
+			}
+		},
+		
+		"Targets": 
+		{
+			"AtlPixellizer": 
+			{
+				"Type": "SharedLibrary",
+				"LinkLibraries": ["AtlBase"],
+				"PlatformSupported": ["Windows", "Unix", "Macos"],
+				"Sources": ["Sources/*.cpp", "Sources/*.h"],
+				"IncludeDirs": ["Sources"],
+				"AvailableConfigurations": ["Debug", "Release"],
+				"Defines": ["AtlBase"],
+				
+				"IfConfiguration": 
+				{
+					"Debug": {
+						"Defines": ["ATL_DEBUG", "ATL_THROW_IF_FAILED"]
+					},
+					
+					"Release": {
+						"IfCompiler": {
+							"GCC or Clang": {
+								"CompilerFlags": ["O3", "fPIC"]
+							}
+						}
+					}
+				},
+				
+				"HasInclude": [
+					"unistd.h", 
+					"windows.h",
+					"stdlib.h"],
+				
+				"Install": {
+					"Libraries": "$[AtlDefLibPath]/Atl/Pixellizer",
+					"Includes": "$[AtlDefIncPath]/Atl/Pixellizer"
+				}
+			}
+		}
+	}
+}

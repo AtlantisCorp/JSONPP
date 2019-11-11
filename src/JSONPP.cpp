@@ -423,7 +423,15 @@ const JSON::Array& JSON::valueOf(const std::string& name, const JSON::Array& def
 
 JSON::Value& JSON::operator[](const std::string& name)
 {
-	return value(name);
+	Value& result = value(name);
+    
+    if (result.isNull())
+    {
+        addValue(Value(name));
+        return value(name);
+    }
+    
+    return result;
 }
 
 const JSON::Value& JSON::operator[](const std::string& name) const

@@ -6,6 +6,19 @@
 #include <iostream>
 #include <chrono>
 
+struct T1
+{
+    int a;
+    std::string b;
+    
+    inline JSON toJSON() const {
+        return JSON{{
+            JSON::Value("a", (JSON::Number)a),
+            JSON::Value("b", b)
+        }};
+    }
+};
+
 int main(int argc, char** argv)
 {
     try
@@ -30,6 +43,18 @@ int main(int argc, char** argv)
         std::cout << "Per file time: " << duration_cast<microseconds>(duration).count() / 1000 << "us." << std::endl;
         
         mainObj = JSON::loadContent("{ \"ab\": true }");
+        std::cout << mainObj << std::endl;
+        
+        mainObj["hello"] = (JSON::Number)123;
+        std::cout << mainObj << std::endl;
+        
+        JSON anotherMain = {{
+            JSON::Value("c", (JSON::Number)456),
+            JSON::Value("d", (bool)false)
+        }};
+        
+        mainObj["anotherMain"] = anotherMain;
+        mainObj["anotherMain"].toObject()["T1"] << T1{ 26, "hello elisa" };
         std::cout << mainObj << std::endl;
         
         return 0;
