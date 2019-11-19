@@ -25,7 +25,7 @@ Value, you can use instead `JSON::valueOf()` which returns a default value if th
 
 ## Serialization
 You can serialize a structure with the serialize operator `<<`. The only thing to do is to provide a function 
-`JSON toJSON() const` in your structure, that will be used by `JSON::Value` to serialize the structure to a JSON object. 
+`void toJSON(JSON&) const` in your structure, that will be used by `JSON::Value` to serialize the structure to a JSON object. 
 
 ```c++
 struct T1
@@ -33,11 +33,9 @@ struct T1
     int a;
     std::string b;
     
-    inline JSON toJSON() const {
-        return JSON{{
-            JSON::Value("a", (JSON::Number)a),
-            JSON::Value("b", b)
-        }};
+    inline void toJSON(JSON& rhs) const {
+        rhs["a"] << a;
+        rhs["b"] << b;
     }
 };
 
@@ -52,14 +50,15 @@ struct T2
     int a;
     T1 b;
     
-    inline JSON toJSON() const {
-        return JSON{{
-            JSON::Value("a", (JSON::Number)a),
-            JSON::Value("b", b.toJSON())
-        }};
+    inline void toJSON(JSON& rhs) const {
+        rhs["a"] << a;
+        rhs["b"] << b;
     }
 };
 ```
+
+*Deserialization* follows the same principle, instead the function `void fromJSON(const JSON&)` is called when using the 
+`>>` operator. 
 
 ## Build instructions
 Nothing special needed. Just run `cmake` with your desired generator and compile the library. Just change SHARED to STATIC if 
