@@ -206,6 +206,18 @@ const JSON::Value& JSON::Value::at(const std::size_t& index) const
 	return mArray.at(index);
 }
 
+JSON::Value& JSON::Value::operator[](const std::string& name)
+{
+    JSON_THROW_IF(!isObject()||!mObject, Exception("invalid object conversion"));
+    return (*mObject)[name];
+}
+
+const JSON::Value& JSON::Value::operator[](const std::string& name) const
+{
+    JSON_THROW_IF(!isObject()||!mObject, Exception("invalid object conversion"));
+    return (*mObject)[name];
+}
+
 std::string JSON::Value::str(unsigned level, bool printName) const
 {
     std::string tabulates;

@@ -11,11 +11,14 @@ struct T1
     int a;
     std::string b;
     
-    inline JSON toJSON() const {
-        return JSON{{
-            JSON::Value("a", (JSON::Number)a),
-            JSON::Value("b", b)
-        }};
+    inline void toJSON(JSON& rhs) const {
+        rhs["a"] << a;
+        rhs["b"] << b;
+    }
+    
+    void fromJSON(const JSON& rhs) {
+        rhs["a"] >> a;
+        rhs["b"] >> b;
     }
 };
 
@@ -55,7 +58,20 @@ int main(int argc, char** argv)
         
         mainObj["anotherMain"] = anotherMain;
         mainObj["anotherMain"].toObject()["T1"] << T1{ 26, "hello elisa" };
+        
+        std::vector < std::string > strings = { "Hello", "World", "!" };
+        mainObj["fromVector"] << strings;
+        
+        std::map < std::string, T1 > structs = {
+            { "Hello", T1{ 1, "2" } },
+            { "World", T1{ 3, "4" } }
+        };
+        
+        mainObj["fromMap"] << structs;
         std::cout << mainObj << std::endl;
+        
+        T1 hello;
+        mainObj["fromMap"]["Hello"] >> hello;
         
         return 0;
     }
@@ -65,6 +81,4 @@ int main(int argc, char** argv)
         std::cerr << "caught exception: " << e.what() << std::endl;
         return -1;
     }
-    
-    
 }

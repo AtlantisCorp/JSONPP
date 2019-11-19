@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <map>
 
 #define JSON_THROW(EXC) throw EXC
 #define JSON_THROW_IF(CND, EXC) if((CND)) JSON_THROW(EXC)
@@ -133,6 +134,11 @@ public:
 		//! @brief Returns the value at given index if this value is an Array. 
 		const Value& at(const std::size_t& index) const;
         
+        //! @brief Returns the Value for passed value name, only if this value is an Object.
+        Value& operator [](const std::string& name);
+        //! @brief Returns the Value for passed value name, only if this value is an Object.
+        const Value& operator [](const std::string& name) const;
+        
         //! @brief Writes the JSON Value into a string.
         //! @param level The number of tabulation to insert.
         //! @param printName Boolean false if we shouldn't print name (specific to Arrays).
@@ -154,9 +160,9 @@ public:
         //! @brief Tries to convert this value to a string.
         operator const std::string() const;
         //! @brief Tries to convert this value to a number.
-        operator Number();
+        explicit operator Number();
         //! @brief Tries to convert this value to a number.
-        operator const Number() const;
+        explicit operator const Number() const;
         //! @brief Tries to convert this value to an array.
         operator std::vector < Value >();
         //! @brief Tries to convert this value to an array.
@@ -166,20 +172,28 @@ public:
         //! @brief Tries to convert this value to an object.
         operator const JSON() const;
         //! @brief Tries to convert this value to a boolean.
-        operator bool();
+        explicit operator bool();
         //! @brief Tries to convert this value to a boolean.
-        operator const bool() const;
+        explicit operator const bool() const;
         
         //! @brief Tries to serialize the specified structure.
         //! The structure must have the function toJSON() defined.
         template < typename T > inline Value& operator << (const T& rhs) {
-            *this = Value(mName, rhs.toJSON());
+            JSON obj;
+            rhs.toJSON(obj);
+            *this = Value(mName, obj);
             return *this;
         }
         
         //! @brief Some stuff for normal structures.
         template < > inline Value& operator << (const std::string& rhs) {
             *this = Value(mName, rhs);
+            return *this;
+        }
+        
+        //! @brief Some stuff for normal structures.
+        template < > inline Value& operator << (const int& rhs) {
+            *this = Value(mName, (JSON::Number)rhs);
             return *this;
         }
         
@@ -198,6 +212,80 @@ public:
         //! @brief Some stuff for normal structures.
         template < > inline Value& operator << (const JSON& rhs) {
             *this = Value(mName, rhs);
+            return *this;
+        }
+        
+        //! @brief Creates a Value for a std::vector of arbitrary type.
+        template < typename T > inline Value& operator << (const std::vector < T >& rhs) {
+            *this = Value(mName, std::vector < Value >());
+            
+            for (auto& val : rhs) {
+                mArray.push_back(Value() << val);
+            }
+                
+            return *this;
+        }
+        
+        //! @brief Creates a Value for a std::map of arbitrary type.
+        template < typename T > inline Value& operator << (const std::map < std::string, T >& rhs) {
+            JSON lhs;
+            
+            for (auto& el : rhs) {
+                lhs[el.first] << el.second;
+            }
+            
+            *this = Value(mName, lhs);
+            return *this;
+        }
+        
+        //! @brief Specialized function for basic types.
+        inline const Value& operator >> (std::string& rhs) const {
+            JSON_THROW_IF(!isString(), Exception("invalid string conversion"));
+            rhs = mString;
+            return *this;
+        }
+        
+        //! @brief Specialized function for basic types.
+        inline const Value& operator >> (int& rhs) const {
+            JSON_THROW_IF(!isNumber(), Exception("invalid number conversion"));
+            rhs = static_cast < int >(mNumber);
+            return *this;
+        }
+        
+        //! @brief Specialized function for basic types.
+        inline const Value& operator >> (Number& rhs) const {
+            JSON_THROW_IF(!isNumber(), Exception("invalid number conversion"));
+            rhs = mNumber;
+            return *this;
+        }
+        
+        //! @brief Specialized function for basic types.
+        inline const Value& operator >> (bool& rhs) const {
+            JSON_THROW_IF(!isBoolean(), Exception("invalid boolean conversion"));
+            rhs = mBoolean;
+            return *this;
+        }
+        
+        //! @brief Specialized function for basic types.
+        inline const Value& operator >> (std::vector<Value>& rhs) const {
+            JSON_THROW_IF(!isArray(), Exception("invalid array conversion"));
+            rhs = mArray;
+            return *this;
+        }
+        
+        //! @brief Specialized function for basic types.
+        inline const Value& operator >> (JSON& rhs) const {
+            JSON_THROW_IF(!isObject()||!mObject, Exception("invalid object conversion"));
+            rhs = *mObject;
+            return *this;
+        }
+        
+        //! @brief Tries to deserialize the specified structure.
+        //! The Value must have the T_OBJECT type, and a function `void fromJSON(const JSON&)` must be
+        //! present in the deserialized class.
+        template < typename T > inline const Value& operator >> (T& rhs) const {
+            JSON_THROW_IF(!isObject()||!mObject, Exception("invalid Object type conversion"));
+            rhs.fromJSON(*mObject);
             return *this;
         }
 	};
