@@ -23,6 +23,44 @@ std::string str = mainObj["value1"].toObject()["subvalue2"];
 If any of the above expression is invalid, a JSON::Exception object is thrown. To avoid those exceptions and get a valid
 Value, you can use instead `JSON::valueOf()` which returns a default value if the value is not found. 
 
+## Serialization
+You can serialize a structure with the serialize operator `<<`. The only thing to do is to provide a function 
+`JSON toJSON() const` in your structure, that will be used by `JSON::Value` to serialize the structure to a JSON object. 
+
+```c++
+struct T1
+{
+    int a;
+    std::string b;
+    
+    inline JSON toJSON() const {
+        return JSON{{
+            JSON::Value("a", (JSON::Number)a),
+            JSON::Value("b", b)
+        }};
+    }
+};
+
+mainObj["T1"] << T1{ 26, "hello elisa" };
+```
+
+With this simple principle, you can use nested serialization for other strutures: 
+
+```c++
+struct T2
+{
+    int a;
+    T1 b;
+    
+    inline JSON toJSON() const {
+        return JSON{{
+            JSON::Value("a", (JSON::Number)a),
+            JSON::Value("b", b.toJSON())
+        }};
+    }
+};
+```
+
 ## Build instructions
 Nothing special needed. Just run `cmake` with your desired generator and compile the library. Just change SHARED to STATIC if 
 you want a STATIC library instead. 
